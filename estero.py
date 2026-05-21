@@ -2,10 +2,11 @@
 """
 Nombre : Nel Penin Yele
 
-Este fichero contiene funciones para manejar señales estéreo de un fichero
-WAVE de 16 bits.
+Este fichero implementa un conjunto de funciones para procesar señales
+WAVE PCM lineales de 16 y 32 bits.
 Incluye funciones para convertir de mono a estéreo, de estéreo a mono y 
-codificar y decodificar señales estéreo usando los bits menos significativos.
+generar un archivo estéreo a partir de dos señales mono, Codificar una señal estéreo
+y decodificar dicha representación para recuperar los dos canales originales.
 
 """
 
@@ -15,7 +16,6 @@ def empaquetar_cabecera(num_channels, sample_rate, bits_sample, data_size):
 
     """
     Empaqueta una cabecera WAVE a partir de los parámetros dados.
-    Devuelve los bytes de la cabecera completa.
     """
     byte_rate = sample_rate * num_channels * bits_sample // 8
     block_align =num_channels * bits_sample // 8
@@ -30,7 +30,6 @@ def empaquetar_cabecera(num_channels, sample_rate, bits_sample, data_size):
 def desempaquetar_cabecera(f):
     """
     Lee y desempaquera la cabecera de un fichero.
-    Devuelve un diccionario con los datos del audio.
     """
     f.seek(0)
     riff, _, wave = struct.unpack('<4sI4s', f.read(12))
@@ -69,9 +68,7 @@ def desempaquetar_cabecera(f):
  
 def estereo2mono(ficEste, ficMono, canal=2):
     '''
-    Convierte un archivo (ficEste) de estéreo a mono, el fichero mono resultante
-    dependerá del argumento canal; 0 para canal izquierdo, 1 para canal derecho,
-    2 para la semisuma y 3 para la semidiferencia.
+    Convierte un archivo (ficEste) de estéreo a mono.
     '''
     with open(ficEste, 'rb') as fpEstereo:
         info = desempaquetar_cabecera(fpEstereo)
@@ -102,8 +99,7 @@ def estereo2mono(ficEste, ficMono, canal=2):
 
 def mono2estereo(ficIzq, ficDer, ficEste):
     '''
-    A partir de dos ficheros mono, uno que corresponde al canal izquierdo y otro al derecho, 
-    crea un archivo estéreo
+    A partir de dos ficheros mono, crea un archivo estéreo.
     '''
     with open(ficIzq, 'rb') as fpIzq:
         info_izq = desempaquetar_cabecera(fpIzq)
@@ -127,9 +123,7 @@ def mono2estereo(ficIzq, ficDer, ficEste):
 
 def codEstereo(ficEste, ficCod):
     '''
-    Lee el fichero ficEste, que contiene una señal estéreo codificada con PCM lineal de 16 bits,
-    y construye con ellas una señal codificada con 32 bits que permita su reproducción
-    tanto por sistemas monofónicos como por sistemas estéreo preparados para ello
+    Lee el fichero ficEste, y construye con ellas una señal codificada con 32 bits que permita su reproducción
     '''
     with open(ficEste, 'rb') as fp:
         info = desempaquetar_cabecera(fp)
@@ -149,10 +143,7 @@ def codEstereo(ficEste, ficCod):
 
 def decEstereo(ficCod, ficEste):
     '''
-    Lee el fichero ficCod con una señal monofónica de 32 bits en la que 
-    los 16 bits más significativos contienen la semisuma de los 
-    dos canales de una señal estéreo y los 16 bits menos significativos la semidiferencia,
-    y escribe el fichero ficEste con los dos canales por separado en el formato de los ficheros WAVE estéreo
+    Lee el fichero ficCod con una señal monofónica de 32 bits y escribe el fichero ficEste con los dos canales por separado en el formato de los ficheros WAVE estéreo
     '''
     with open(ficCod, 'rb') as fpCod:
         info = desempaquetar_cabecera(fpCod)
@@ -180,5 +171,4 @@ def decEstereo(ficCod, ficEste):
     with open(ficEste, 'wb') as fpEste:
          fpEste.write(empaquetar_cabecera(2, info['sample_rate'], 16, len(datos_estereo)))
          fpEste.write(datos_estereo)
-
 
